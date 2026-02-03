@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import top.mrxiaom.pluginbase.actions.ActionProviders;
 import top.mrxiaom.pluginbase.api.IAction;
 import top.mrxiaom.pluginbase.utils.ConfigUtils;
@@ -74,6 +75,7 @@ public class TimerConfig {
     public final @NotNull List<IAction> conditionDenyActions;
     // executor
     public final @NotNull List<IAction> executorRunActions;
+    public final @NotNull List<List<IAction>> executorRandomActions;
 
     private final Data data;
 
@@ -107,6 +109,11 @@ public class TimerConfig {
 
         // others
         this.executorRunActions = ActionProviders.loadActions(config, "executor.run-actions");
+        this.executorRandomActions = new ArrayList<>();
+        ConfigurationSection section = config.getConfigurationSection("executor.random-actions");
+        if (section != null) for (String key : section.getKeys(false)) {
+            executorRandomActions.add(ActionProviders.loadActions(section, key));
+        }
 
         this.data = new Data(dataConfig);
     }
@@ -156,6 +163,13 @@ public class TimerConfig {
     public LocalDateTime getNextRoundTime(LocalDateTime now) {
         long currentPassRound = getCurrentPassRound(now);
         return startTime.plusSeconds((currentPassRound + 1) * periodDuration.getTotalSeconds());
+    }
+
+    @Nullable
+    public List<IAction> getExecutorRandomActions() {
+        if (executorRandomActions.isEmpty()) return null;
+        if (executorRandomActions.size() == 1) return executorRandomActions.get(0);
+        return executorRandomActions.get(new Random().nextInt(executorRandomActions.size()));
     }
 
     public boolean doConditionCheck(LocalDateTime now) {

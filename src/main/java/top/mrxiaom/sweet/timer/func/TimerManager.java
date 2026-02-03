@@ -3,6 +3,7 @@ package top.mrxiaom.sweet.timer.func;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import top.mrxiaom.pluginbase.actions.ActionProviders;
+import top.mrxiaom.pluginbase.api.IAction;
 import top.mrxiaom.pluginbase.api.IRunTask;
 import top.mrxiaom.pluginbase.func.AutoRegister;
 import top.mrxiaom.pluginbase.utils.ConfigUtils;
@@ -107,6 +108,10 @@ public class TimerManager extends AbstractModule {
             for (TimerConfig timer : listExecute) {
                 if (debug) info("[调试] 正在执行定时器 " + timer.getId() + " 的任务内容");
                 ActionProviders.run(plugin, null, timer.executorRunActions);
+                List<IAction> randomActions = timer.getExecutorRandomActions();
+                if (randomActions != null) {
+                    ActionProviders.run(plugin, null, randomActions);
+                }
             }
         }
         if (save) saveData();
