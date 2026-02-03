@@ -55,6 +55,7 @@ public class TimerManager extends AbstractModule {
                 warn("加载定时器配置 " + id + " 时出现异常", t);
             }
         });
+        info("[timer] 共加载了 " + configList.size() + " 个定时器配置");
         timerTask = plugin.getScheduler().runTaskTimerAsync(this::doSchedulerCheck, 1L, pluginConfig.getLong("check-period", 20));
     }
 
