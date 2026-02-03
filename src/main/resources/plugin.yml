@@ -1,0 +1,15 @@
+name: SweetTimer
+version: '${version}'
+main: top.mrxiaom.sweet.timer.SweetTimer
+api-version: 1.13
+depend: []
+softdepend: 
+  - PlaceholderAPI
+authors: [ MrXiaoM ]
+folia-supported: true
+libraries:
+  - "org.jetbrains:annotations:24.0.0"
+commands:
+  sweettimer:
+    description: 'The main command of SweetTimer'
+    aliases: [ stimer, timer ]
