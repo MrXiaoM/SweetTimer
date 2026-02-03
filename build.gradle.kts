@@ -38,6 +38,7 @@ dependencies {
     base.library("net.kyori:adventure-text-minimessage:4.22.0")
     base.library("net.kyori:adventure-text-serializer-plain:4.22.0")
 
+    implementation("top.mrxiaom:EvalEx-j8:3.4.0")
     implementation("com.github.technicallycoded:FoliaLib:0.4.4") { isTransitive = false }
     for (artifact in pluginBaseModules) {
         implementation("$artifact")
@@ -62,6 +63,7 @@ tasks {
     shadowJar {
         mapOf(
             "top.mrxiaom.pluginbase" to "base",
+            "com.ezylang.evalex" to "evalex",
             "com.tcoded.folialib" to "folialib",
         ).forEach { (original, target) ->
             relocate(original, "$shadowGroup.$target")

@@ -1,0 +1,4 @@
+
+debug: false
+timer-folder: './timer'
+check-period: 20
