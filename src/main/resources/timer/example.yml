@@ -39,9 +39,10 @@ conditions:
 
 # 定时任务执行器
 executor:
-  # 要固定执行的定时任务
+  # 要固定执行的定时任务操作
+  # 例如 - '[console]broadcast 这是一条公告'
   run-actions: []
-  # 随机挑一个执行的定时任务
+  # 随机挑一个执行的定时任务操作
   random-actions:
     # 键名不重要，只要不重复就行
     a: []
