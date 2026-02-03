@@ -102,20 +102,22 @@ public class TimerManager extends AbstractModule {
         }
         if (!listDeny.isEmpty()) {
             for (TimerConfig timer : listDeny) {
-                ActionProviders.run(plugin, null, timer.conditionDenyActions);
+                runActions(timer.conditionDenyActions);
             }
         }
         if (!listExecute.isEmpty()) {
             for (TimerConfig timer : listExecute) {
                 if (debug) info("[调试] 正在执行定时器 " + timer.getId() + " 的任务内容");
-                ActionProviders.run(plugin, null, timer.executorRunActions);
-                List<IAction> randomActions = timer.getExecutorRandomActions();
-                if (randomActions != null) {
-                    ActionProviders.run(plugin, null, randomActions);
-                }
+                runActions(timer.executorRunActions);
+                runActions(timer.getExecutorRandomActions());
             }
         }
         if (save) saveData();
+    }
+
+    private void runActions(List<IAction> actions) {
+        if (actions == null || actions.isEmpty()) return;
+        plugin.getScheduler().runTask(() -> ActionProviders.run(plugin, null, actions));
     }
 
     /**
