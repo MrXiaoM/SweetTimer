@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import top.mrxiaom.pluginbase.actions.ActionProviders;
 import top.mrxiaom.pluginbase.api.IAction;
 import top.mrxiaom.pluginbase.utils.ConfigUtils;
@@ -50,6 +49,11 @@ public class TimerConfig {
 
         public void setSuccessRoundCount(int successRoundCount) {
             this.successRoundCount = successRoundCount;
+        }
+
+        public void reset() {
+            data.successRoundCount = 0;
+            data.lastRound = 0;
         }
 
         public void save(ConfigurationSection data) {

@@ -64,6 +64,16 @@ public class CommandMain extends AbstractModule implements CommandExecutor, TabC
                 }
                 return t(sender, "&e自动上架配置 &b" + timer.getId() + "&e 条件测试不通过，未知的测试结果代码 &b" + reason);
             }
+            if (args.length == 2 && "reset".equalsIgnoreCase(args[0])) {
+                String timerName = args[1];
+                TimerManager manager = TimerManager.inst();
+                TimerConfig timer = manager.get(timerName);
+                if (timer == null) {
+                    return Messages.Command.no_timer.tm(sender, Pair.of("%timer%", timerName));
+                }
+                timer.getData().reset();
+                return t(sender, "&a已重置定时器&b " + timer.getId() + " &a的数据");
+            }
             if (args.length == 1 && "reload".equalsIgnoreCase(args[0])) {
                 plugin.reloadConfig();
                 return Messages.Command.reload__success.tm(sender);
@@ -74,7 +84,7 @@ public class CommandMain extends AbstractModule implements CommandExecutor, TabC
     }
 
     private static final List<String> listArg0 = Lists.newArrayList();
-    private static final List<String> listOpArg0 = Lists.newArrayList("print", "condition", "reload");
+    private static final List<String> listOpArg0 = Lists.newArrayList("print", "condition", "reset", "reload");
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
@@ -82,7 +92,7 @@ public class CommandMain extends AbstractModule implements CommandExecutor, TabC
         }
         if (args.length == 2) {
             if (sender.isOp()) {
-                if ("print".equalsIgnoreCase(args[0]) || "condition".equalsIgnoreCase(args[0])) {
+                if ("print".equalsIgnoreCase(args[0]) || "condition".equalsIgnoreCase(args[0]) || "reset".equalsIgnoreCase(args[0])) {
                     return startsWith(TimerManager.inst().keys(), args[1]);
                 }
             }
