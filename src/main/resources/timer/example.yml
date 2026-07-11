@@ -41,9 +41,18 @@ conditions:
 executor:
   # 要固定执行的定时任务操作
   # 例如 - '[console]broadcast 这是一条公告'
+  # 格式详见插件文档:
+  # https://plugins.mcio.dev/elopers/base/gui-config/#%E8%87%AA%E5%AE%9A%E4%B9%89%E7%82%B9%E5%87%BB%E6%93%8D%E4%BD%9C
   run-actions: []
   # 随机挑一个执行的定时任务操作
   random-actions:
     # 键名不重要，只要不重复就行
     a: []
     b: []
+  # 第几次执行成功的时候，额外执行任务操作
+  # 格式与上方相同
+  by-count:
+    1:
+      run-actions: []
+      random-actions:
+        a: []

@@ -7,8 +7,10 @@ import top.mrxiaom.pluginbase.api.IAction;
 import top.mrxiaom.pluginbase.api.IRunTask;
 import top.mrxiaom.pluginbase.func.AutoRegister;
 import top.mrxiaom.pluginbase.utils.ConfigUtils;
+import top.mrxiaom.pluginbase.utils.ListPair;
 import top.mrxiaom.pluginbase.utils.Util;
 import top.mrxiaom.sweet.timer.SweetTimer;
+import top.mrxiaom.sweet.timer.config.ActionBundle;
 import top.mrxiaom.sweet.timer.config.TimerConfig;
 
 import java.io.File;
@@ -61,8 +63,8 @@ public class TimerManager extends AbstractModule {
 
     public void doSchedulerCheck() {
         boolean save = false;
-        List<TimerConfig> listExecute = new ArrayList<>();
-        List<TimerConfig> listDeny = new ArrayList<>();
+        List<Runnable> listExecute = new ArrayList<>();
+        List<Runnable> listDeny = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
         for (TimerConfig timer : configList.values()) {
             // 不在指定时间内的定时器不运行
@@ -87,37 +89,50 @@ public class TimerManager extends AbstractModule {
                 }
                 long currentRoundSeconds = timer.getCurrentRoundSeconds(now);
                 if (currentRoundSeconds <= timer.getGivingUpGap().getTotalSeconds()) {
+                    ListPair<String, Object> r = new ListPair<>();
                     // 运行定时器检查
                     if (!timer.doConditionCheck(now)) {
+                        r.add("%success_round%", data.getSuccessRoundCount());
                         if (debug) info("[调试] 定时器配置 " + timer.getId() + " 的条件检查不通过");
-                        listDeny.add(timer);
+                        listDeny.add(() -> runActions(timer.conditionDenyActions, r));
                         continue;
                     }
                     if (debug) info("[调试] 定时器配置 " + timer.getId() + " 计划运行上架任务");
+                    int currentRound = data.addSuccessRoundCount();
+                    r.add("%success_round%", currentRound);
 
                     // 计划运行定时器任务
-                    listExecute.add(timer);
+                    listExecute.add(() -> {
+                        ActionBundle bundle = timer.executorActionsBySuccessCount.get(currentRound);
+                        if (debug) info("[调试] 正在执行定时器 " + timer.getId() + " 的任务内容，第 " + currentRound + " 次成功执行");
+                        runActions(timer.executorActions, r);
+                        runActions(bundle, r);
+                    });
                 }
             }
         }
         if (!listDeny.isEmpty()) {
-            for (TimerConfig timer : listDeny) {
-                runActions(timer.conditionDenyActions);
+            for (Runnable task : listDeny) {
+                task.run();
             }
         }
         if (!listExecute.isEmpty()) {
-            for (TimerConfig timer : listExecute) {
-                if (debug) info("[调试] 正在执行定时器 " + timer.getId() + " 的任务内容");
-                runActions(timer.executorRunActions);
-                runActions(timer.getExecutorRandomActions());
+            for (Runnable task : listExecute) {
+                task.run();
             }
         }
         if (save) saveData();
     }
 
-    private void runActions(List<IAction> actions) {
+    private void runActions(ActionBundle bundle, ListPair<String, Object> r) {
+        if (bundle == null) return;
+        runActions(bundle.baseActions(), r);
+        runActions(bundle.randomActions(), r);
+    }
+
+    private void runActions(List<IAction> actions, ListPair<String, Object> r) {
         if (actions == null || actions.isEmpty()) return;
-        plugin.getScheduler().runTask(() -> ActionProviders.run(plugin, null, actions));
+        plugin.getScheduler().runTask(() -> ActionProviders.run(plugin, null, actions, r));
     }
 
     /**

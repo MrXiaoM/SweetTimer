@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import top.mrxiaom.pluginbase.actions.ActionProviders;
 import top.mrxiaom.pluginbase.api.IAction;
 import top.mrxiaom.pluginbase.utils.ConfigUtils;
+import top.mrxiaom.pluginbase.utils.Util;
 import top.mrxiaom.pluginbase.utils.depend.PAPI;
 import top.mrxiaom.sweet.timer.SweetTimer;
 
@@ -16,10 +17,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.function.Function;
 
 import static top.mrxiaom.pluginbase.func.AbstractPluginHolder.t;
@@ -44,6 +42,10 @@ public class TimerConfig {
 
         public int getSuccessRoundCount() {
             return successRoundCount;
+        }
+
+        public int addSuccessRoundCount() {
+            return ++successRoundCount;
         }
 
         public void setSuccessRoundCount(int successRoundCount) {
@@ -74,8 +76,8 @@ public class TimerConfig {
     private final @NotNull List<Integer> conditionMonths;
     public final @NotNull List<IAction> conditionDenyActions;
     // executor
-    public final @NotNull List<IAction> executorRunActions;
-    public final @NotNull List<List<IAction>> executorRandomActions;
+    public final @NotNull ActionBundle executorActions;
+    public final @NotNull Map<Integer, ActionBundle> executorActionsBySuccessCount;
 
     private final Data data;
 
@@ -108,11 +110,14 @@ public class TimerConfig {
         this.conditionDenyActions = ActionProviders.loadActions(config, "conditions.deny-actions");
 
         // others
-        this.executorRunActions = ActionProviders.loadActions(config, "executor.run-actions");
-        this.executorRandomActions = new ArrayList<>();
-        ConfigurationSection section = config.getConfigurationSection("executor.random-actions");
+        this.executorActions = ActionBundle.load(config.getConfigurationSection("executor"));
+        this.executorActionsBySuccessCount = new HashMap<>();
+        ConfigurationSection section = config.getConfigurationSection("executor.by-count");
         if (section != null) for (String key : section.getKeys(false)) {
-            executorRandomActions.add(ActionProviders.loadActions(section, key));
+            Integer count = Util.parseInt(key).orElse(null);
+            if (count == null) continue;
+            ActionBundle bundle = ActionBundle.load(section.getConfigurationSection(key));
+            executorActionsBySuccessCount.put(count, bundle);
         }
 
         this.data = new Data(dataConfig);
@@ -163,13 +168,6 @@ public class TimerConfig {
     public LocalDateTime getNextRoundTime(LocalDateTime now) {
         long currentPassRound = getCurrentPassRound(now);
         return startTime.plusSeconds((currentPassRound + 1) * periodDuration.getTotalSeconds());
-    }
-
-    @Nullable
-    public List<IAction> getExecutorRandomActions() {
-        if (executorRandomActions.isEmpty()) return null;
-        if (executorRandomActions.size() == 1) return executorRandomActions.get(0);
-        return executorRandomActions.get(new Random().nextInt(executorRandomActions.size()));
     }
 
     public boolean doConditionCheck(LocalDateTime now) {
