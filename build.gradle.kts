@@ -13,8 +13,9 @@ buildscript {
 }
 val base = LibraryHelper(project)
 
-group = "top.mrxiaom.sweet.timer"
-version = "1.0.1"
+println("Group:   ${rootProject.group}")
+println("Version: ${rootProject.version}")
+
 val targetJavaVersion = 8
 val pluginBaseModules = base.modules.run { listOf(library, actions, l10n) }
 val shadowGroup = "top.mrxiaom.sweet.timer.libs"
